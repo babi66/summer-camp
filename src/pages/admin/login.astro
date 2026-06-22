@@ -1,0 +1,121 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Office Admin Portal Login">
+  <div class="py-16 px-4 sm:px-6 lg:px-8 max-w-md mx-auto min-h-[75vh] flex flex-col justify-center">
+    
+    <!-- Login Card Wrapper -->
+    <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+      <!-- Top Branding Strip -->
+      <div class="bg-gradient-to-r from-slate-800 to-slate-900 p-8 text-white text-center">
+        <span class="text-3xl block mb-2">🔐</span>
+        <h1 class="text-2xl font-black tracking-tight">School Office Access</h1>
+        <p class="text-slate-400 text-xs mt-1">Authorized personnel only. Please sign in to manage bookings.</p>
+      </div>
+
+      <form id="login-form" class="p-6 sm:p-8 space-y-5">
+        <!-- Error Alert Banner (Hidden by default) -->
+        <div id="login-error-container" class="hidden bg-red-50 text-red-600 border border-red-100 p-4 rounded-2xl text-xs sm:text-sm font-semibold">
+          <p id="login-error-message"></p>
+        </div>
+
+        <!-- Email Field -->
+        <div class="space-y-1.5">
+          <label for="admin-email" class="block text-xs sm:text-sm font-bold text-slate-700">Office Email Address</label>
+          <input 
+            type="email" 
+            id="admin-email" 
+            name="email" 
+            required 
+            placeholder="e.g. staff@school.com" 
+            class="w-full bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-800 focus:bg-white transition"
+          />
+        </div>
+
+        <!-- Password Field -->
+        <div class="space-y-1.5">
+          <label for="admin-password" class="block text-xs sm:text-sm font-bold text-slate-700">Password</label>
+          <input 
+            type="password" 
+            id="admin-password" 
+            name="password" 
+            required 
+            placeholder="••••••••" 
+            class="w-full bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm sm:text-base text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-800 focus:bg-white transition"
+          />
+        </div>
+
+        <!-- Submit Button -->
+        <button 
+          type="submit" 
+          id="login-submit-btn"
+          class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 mt-4 text-sm sm:text-base"
+        >
+          <span id="login-btn-text">Log In to Dashboard</span>
+          <!-- Loading Spinner (Hidden by default) -->
+          <svg id="login-btn-spinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </button>
+
+        <div class="text-center">
+          <a href="/" class="text-xs text-slate-400 hover:text-slate-600 transition-colors font-medium">
+            ← Return to Homepage
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { auth } from '../../lib/firebase';
+  import { signInWithEmailAndPassword } from 'firebase/auth';
+
+  const loginForm = document.getElementById('login-form') as HTMLFormElement;
+  const loginSubmitBtn = document.getElementById('login-submit-btn') as HTMLButtonElement;
+  const loginBtnText = document.getElementById('login-btn-text') as HTMLSpanElement;
+  const loginBtnSpinner = document.getElementById('login-btn-spinner') as SVGElement;
+  const errorContainer = document.getElementById('login-error-container') as HTMLDivElement;
+  const errorMessage = document.getElementById('login-error-message') as HTMLParagraphElement;
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Reset state & start loading animations
+    errorContainer.classList.add('hidden');
+    loginSubmitBtn.disabled = true;
+    loginBtnText.textContent = "Verifying Credentials...";
+    loginBtnSpinner.classList.remove('hidden');
+
+    const formData = new FormData(loginForm);
+    const email = (formData.get('email') as string).trim();
+    const password = formData.get('password') as string;
+
+    try {
+      // Authenticate directly with Firebase Authentication
+      await signInWithEmailAndPassword(auth, email, password);
+      
+      // On success, redirect worker to the management dashboard
+      window.location.href = '/admin/dashboard';
+    } catch (err: any) {
+      // Map error codes to friendly localized text
+      let errorText = "Login failed. Please inspect your connection and try again.";
+      if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+        errorText = "Invalid email or password. Please verify your credentials.";
+      } else if (err.code === 'auth/too-many-requests') {
+        errorText = "Too many failed attempts. This account has been temporarily locked. Try again later.";
+      }
+      
+      errorMessage.textContent = errorText;
+      errorContainer.classList.remove('hidden');
+      
+      // Reset button state
+      loginSubmitBtn.disabled = false;
+      loginBtnText.textContent = "Log In to Dashboard";
+      loginBtnSpinner.classList.add('hidden');
+    }
+  });
+</script>

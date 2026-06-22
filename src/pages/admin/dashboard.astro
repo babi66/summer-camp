@@ -1,0 +1,120 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Office Admin Dashboard" isAdmin={true}>
+  <div class="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
+    
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-800 pb-6">
+      <div>
+        <h1 class="text-3xl font-black text-white tracking-tight uppercase">Comboni Office Roster</h1>
+        <!-- Bold, gradient-styled greeting -->
+        <p id="user-greeting" class="text-slate-300 text-lg mt-2 font-medium">
+          Welcome back, <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 font-bold">Elsabet Aschalew</span>.
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <!-- Search input field -->
+        <input 
+          type="text" 
+          id="search-input" 
+          placeholder="🔍 Search student name..." 
+          class="bg-[#030712] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition w-full md:w-64"
+        />
+        <button id="btn-logout" class="bg-red-950/40 hover:bg-red-900/30 border border-red-900/50 text-red-400 text-sm font-bold px-4 py-2.5 rounded-xl transition">
+          Log Out
+        </button>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="bg-[#091122] rounded-3xl border border-slate-800 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left whitespace-nowrap border-collapse">
+          <thead>
+            <tr class="bg-slate-950/40 border-b border-slate-850 text-slate-400 text-xs font-bold uppercase tracking-wider">
+              <th class="px-6 py-4">Student Name</th>
+              <th class="px-6 py-4">Booking ID</th>
+              <th class="px-6 py-4">Grade</th>
+              <th class="px-6 py-4">Status</th>
+              <th class="px-6 py-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="roster-tbody" class="divide-y divide-slate-850/60 text-sm">
+            <tr><td colspan="5" class="py-10 text-center text-slate-500">Loading bookings...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { db, auth } from '../../lib/firebase';
+  import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+  import { signOut } from 'firebase/auth';
+
+  const rosterTbody = document.getElementById('roster-tbody') as HTMLTableSectionElement;
+  const searchInput = document.getElementById('search-input') as HTMLInputElement;
+
+  let allBookings: any[] = [];
+
+  // Function to render rows based on filter
+  function renderTable(filter: string = '') {
+    rosterTbody.innerHTML = '';
+    const filtered = allBookings.filter(b => 
+      b.studentName.toLowerCase().includes(filter.toLowerCase())
+    );
+
+    if (filtered.length === 0) {
+      rosterTbody.innerHTML = '<tr><td colspan="5" class="py-10 text-center text-slate-500">No students found.</td></tr>';
+      return;
+    }
+
+    filtered.forEach((data) => {
+      const tr = document.createElement('tr');
+      tr.className = "hover:bg-slate-900/50 transition";
+      const isConfirmed = data.status === 'confirmed';
+      
+      tr.innerHTML = `
+        <td class="px-6 py-4 text-white font-bold">${data.studentName}</td>
+        <td class="px-6 py-4 font-mono text-slate-400">${data.id}</td>
+        <td class="px-6 py-4 text-slate-300">${data.grade}</td>
+        <td class="px-6 py-4">
+          <span class="px-2 py-1 rounded-full text-[10px] font-bold ${isConfirmed ? 'bg-emerald-950 text-emerald-400' : 'bg-amber-950 text-amber-400'}">
+            ${isConfirmed ? 'CONFIRMED' : 'PENDING'}
+          </span>
+        </td>
+        <td class="px-6 py-4 text-right">
+          ${!isConfirmed ? `
+            <button data-id="${data.docId}" class="confirm-btn bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded-lg text-xs font-bold transition">
+              Confirm
+            </button>
+          ` : '<span class="text-emerald-500 font-bold text-xs">Paid</span>'}
+        </td>
+      `;
+      rosterTbody.appendChild(tr);
+    });
+
+    // Re-attach listeners
+    document.querySelectorAll('.confirm-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = (e.target as HTMLElement).getAttribute('data-id');
+        if(id) await updateDoc(doc(db, 'bookings', id), { status: 'confirmed' });
+      });
+    });
+  }
+
+  // Real-time listener
+  onSnapshot(collection(db, 'bookings'), (snapshot) => {
+    allBookings = snapshot.docs.map(doc => ({ ...doc.data(), docId: doc.id }));
+    renderTable(searchInput.value);
+  });
+
+  // Search event
+  searchInput.addEventListener('input', () => renderTable(searchInput.value));
+
+  document.getElementById('btn-logout')?.addEventListener('click', () => {
+    signOut(auth).then(() => window.location.href = '/admin/login');
+  });
+</script>

@@ -1,0 +1,202 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Secure Your Spot">
+  <div class="py-12 px-4 sm:px-6 lg:px-8 max-w-xl mx-auto">
+    <!-- Navigation back link -->
+    <div class="mb-8">
+      <a href="/" class="text-sm font-semibold text-slate-400 hover:text-blue-400 transition-colors flex items-center gap-2">
+        ← Cancel and Return Home
+      </a>
+    </div>
+
+    <!-- Main Card Container in premium deep blue -->
+    <div class="bg-[#091122] rounded-3xl border border-slate-800 shadow-2xl overflow-hidden">
+      <div class="bg-gradient-to-r from-blue-600 to-cyan-500 p-8 text-center">
+        <h1 class="text-3xl font-black text-white tracking-tight">Reserve a Space</h1>
+        <p class="text-blue-100 text-sm mt-2">Book your spot instantly. No registration fee is due online.</p>
+      </div>
+
+      <!-- Form logic -->
+      <form id="booking-form" class="p-6 sm:p-8 space-y-6">
+        
+        <!-- Error Container -->
+        <div id="error-container" class="hidden bg-red-950/50 text-red-400 border border-red-800 p-4 rounded-xl text-sm font-medium">
+          <p id="error-message"></p>
+        </div>
+
+        <!-- Student Full Name -->
+        <div class="space-y-2">
+          <label for="studentName" class="block text-xs sm:text-sm font-bold text-slate-300 uppercase tracking-wider">Your Full Name</label>
+          <input 
+            type="text" 
+            id="studentName" 
+            name="studentName" 
+            required 
+            placeholder="e.g. Liam Smith" 
+            class="w-full bg-[#030712] border border-slate-800 text-white placeholder-slate-600 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label for="grade" class="block text-xs sm:text-sm font-bold text-slate-300 uppercase tracking-wider">High School Year / Grade</label>
+          <div class="relative">
+            <select 
+              id="grade" 
+              name="grade" 
+              required
+              class="w-full bg-[#030712] border border-slate-800 text-white rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition appearance-none cursor-pointer"
+            >
+              <option value="" disabled selected>Select your current year</option>
+              <option value="9th Grade (Freshman)">9th Grade (Freshman)</option>
+              <option value="10th Grade (Sophomore)">10th Grade (Sophomore)</option>
+              <option value="11th Grade (Junior)">11th Grade (Junior)</option>
+              <option value="12th Grade (Senior)">12th Grade (Senior)</option>
+            </select>
+            <!-- Dropdown custom caret arrow -->
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+              <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Student Mobile Phone -->
+        <div class="space-y-2">
+          <label for="studentPhone" class="block text-xs sm:text-sm font-bold text-slate-300 uppercase tracking-wider">Your Mobile Number</label>
+          <input 
+            type="tel" 
+            id="studentPhone" 
+            name="studentPhone" 
+            required 
+            placeholder="e.g. +1 (555) 123-4567" 
+            class="w-full bg-[#030712] border border-slate-800 text-white placeholder-slate-600 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+          />
+        </div>
+
+        <!-- Student Email Address -->
+        <div class="space-y-2">
+          <label for="studentEmail" class="block text-xs sm:text-sm font-bold text-slate-300 uppercase tracking-wider">Your Email Address</label>
+          <input 
+            type="email" 
+            id="studentEmail" 
+            name="studentEmail" 
+            required 
+            placeholder="e.g. liam@example.com" 
+            class="w-full bg-[#030712] border border-slate-800 text-white placeholder-slate-600 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+          />
+        </div>
+
+        <div class="bg-blue-950/30 rounded-xl p-4 border border-blue-900/40 flex gap-3 text-blue-300 text-xs sm:text-sm leading-relaxed">
+          <span class="text-base">💡</span>
+          <div>
+            <p class="font-bold">One Spot Per Person Policy</p>
+            <p class="mt-0.5 text-blue-400">Multiple entries submitted with the same name and mobile phone combination are flagged and rejected by the school booking engine.</p>
+          </div>
+        </div>
+
+        <!-- Submission Trigger -->
+        <button 
+          type="submit" 
+          id="submit-btn"
+          class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 active:scale-98 text-white font-extrabold text-base py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 mt-2"
+        >
+          <span id="btn-text">Confirm My Space</span>
+          <svg id="btn-spinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { db } from '../lib/firebase';
+  import { collection, getDocs, setDoc, doc } from 'firebase/firestore';
+
+  // Secure short randomized booking ticket code generator
+  function generateBookingId(): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 5; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  }
+
+  const form = document.getElementById('booking-form') as HTMLFormElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const btnText = document.getElementById('btn-text') as HTMLSpanElement;
+  const btnSpinner = document.getElementById('btn-spinner') as SVGElement;
+  const errorContainer = document.getElementById('error-container') as HTMLDivElement;
+  const errorMessage = document.getElementById('error-message') as HTMLParagraphElement;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Clear alerts and start loader
+    errorContainer.classList.add('hidden');
+    submitBtn.disabled = true;
+    btnText.textContent = "Verifying Spot Availability...";
+    btnSpinner.classList.remove('hidden');
+
+    const formData = new FormData(form);
+    const studentName = (formData.get('studentName') as string).trim();
+    const grade = formData.get('grade') as string;
+    const studentPhone = (formData.get('studentPhone') as string).trim();
+    const studentEmail = (formData.get('studentEmail') as string).trim();
+
+    try {
+      // 1. Perform client-side verification on loaded snapshot to avoid Firestore compound index requirements
+      const bookingsRef = collection(db, 'bookings');
+      const querySnapshot = await getDocs(bookingsRef);
+      
+      let isDuplicate = false;
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (
+          data.studentNameLower === studentName.toLowerCase() && 
+          data.studentPhone === studentPhone
+        ) {
+          isDuplicate = true;
+        }
+      });
+      
+      if (isDuplicate) {
+        throw new Error("You have already booked a space with this name and phone number. Go to the office to confirm!");
+      }
+
+      // 2. Generate randomized booking code
+      const bookingId = generateBookingId();
+
+      // 3. Write data schema structure straight into Firestore collection
+      await setDoc(doc(db, 'bookings', bookingId), {
+        id: bookingId,
+        studentName: studentName,
+        studentNameLower: studentName.toLowerCase(),
+        grade: grade,
+        studentPhone: studentPhone,
+        studentEmail: studentEmail,
+        status: 'pending',
+        timestamp: Date.now()
+      });
+
+      // 4. Redirect successfully directly to ticket success screen
+      window.location.href = `/success?id=${bookingId}`;
+
+    } catch (err: any) {
+      console.error("Firebase submission error details: ", err);
+      errorMessage.textContent = err.message || "A database transaction error occurred. Please verify configuration.";
+      errorContainer.classList.remove('hidden');
+      
+      // Reset layout button triggers
+      submitBtn.disabled = false;
+      btnText.textContent = "Confirm My Space";
+      btnSpinner.classList.add('hidden');
+    }
+  });
+</script>

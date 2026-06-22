@@ -1,0 +1,274 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Your Booking Code">
+  <div class="py-12 px-4 sm:px-6 lg:px-8 max-w-md mx-auto min-h-[80vh] flex flex-col justify-center">
+    
+    <!-- State Loader & Diagnostic Help Box -->
+    <div id="status-card" class="bg-[#091122] rounded-3xl border border-slate-800 p-8 text-center space-y-6 shadow-2xl">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+      <div>
+        <p class="text-white font-bold">Querying booking database...</p>
+        <p class="text-slate-400 text-xs mt-1">Establishing connection to secure server.</p>
+      </div>
+
+      <div id="connection-warning" class="hidden pt-4 border-t border-slate-800 space-y-3">
+        <p class="text-amber-400 text-xs font-semibold leading-relaxed">
+          ⚠️ Connection taking longer than expected. Is your Firebase setup configured?
+        </p>
+        <div class="flex gap-2">
+          <button 
+            id="force-load-demo" 
+            class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded-xl transition"
+          >
+            Force Load Demo Ticket
+          </button>
+          <button 
+            onclick="window.location.reload()" 
+            class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold py-2 rounded-xl transition"
+          >
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actual Ticket Container (Hidden initially) -->
+    <div id="ticket-container" class="hidden space-y-6">
+      
+      <!-- Top Success Indicator -->
+      <div class="text-center space-y-2">
+        <div class="inline-flex items-center justify-center w-14 h-14 bg-emerald-950 text-emerald-400 rounded-full text-2xl border border-emerald-800/50">
+          ✓
+        </div>
+        <h1 class="text-2xl font-black text-white">Booking Locked In!</h1>
+        <p class="text-sm text-slate-400 px-4">
+          Space reserved temporarily. Take a screenshot now.
+        </p>
+      </div>
+
+      <!-- The Screenshot-Friendly Ticket Card -->
+      <div id="ticket-card" class="bg-[#091122] rounded-3xl border border-slate-800 overflow-hidden relative shadow-2xl">
+        
+        <!-- Ticket Header Block with Decorative Hole Punches -->
+        <div class="bg-gradient-to-r from-blue-600 to-cyan-500 p-6 text-white text-center relative border-b border-dashed border-slate-800">
+          <!-- Left/Right Hole Punch Visual Mockups -->
+          <div class="absolute -left-3 -bottom-3 w-6 h-6 bg-[#030712] rounded-full border-r border-slate-800"></div>
+          <div class="absolute -right-3 -bottom-3 w-6 h-6 bg-[#030712] rounded-full border-l border-slate-800"></div>
+          
+          <p class="text-xs font-bold tracking-widest uppercase text-blue-100">Official Summer Camp Ticket</p>
+          <div class="mt-2">
+            <span class="text-[10px] text-blue-200 block uppercase tracking-wide">Secure Booking Code</span>
+            <span id="ticket-id" class="text-4xl font-black tracking-widest block font-mono mt-1 text-white">-----</span>
+          </div>
+        </div>
+
+        <div class="p-6 sm:p-8 space-y-5 relative">
+          <!-- Top counter-part decorative hole punches -->
+          <div class="absolute -left-3 -top-3 w-6 h-6 bg-[#030712] rounded-full"></div>
+          <div class="absolute -right-3 -top-3 w-6 h-6 bg-[#030712] rounded-full"></div>
+
+          <!-- Student Name -->
+          <div class="grid grid-cols-3 gap-2 border-b border-slate-800/80 pb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400 col-span-1">Student</span>
+            <span id="ticket-student" class="text-sm font-bold text-white col-span-2 text-right">Loading...</span>
+          </div>
+
+          <!-- Grade Level -->
+          <div class="grid grid-cols-3 gap-2 border-b border-slate-800/80 pb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400 col-span-1">Grade / Year</span>
+            <span id="ticket-grade" class="text-sm font-medium text-slate-300 col-span-2 text-right">Loading...</span>
+          </div>
+
+          <!-- Student Phone Number -->
+          <div class="grid grid-cols-3 gap-2 border-b border-slate-800/80 pb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400 col-span-1">Mobile</span>
+            <span id="ticket-phone" class="text-sm font-medium text-slate-300 col-span-2 text-right">Loading...</span>
+          </div>
+
+          <!-- Status Indicator -->
+          <div class="grid grid-cols-3 gap-2 border-b border-slate-800/80 pb-3 items-center">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400 col-span-1">Status</span>
+            <div class="col-span-2 text-right">
+              <span id="ticket-status" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-950 text-amber-400 border border-amber-900/50">
+                ● Pending Payment
+              </span>
+            </div>
+          </div>
+
+          <!-- Notice Action Description Banner inside the Ticket -->
+          <div class="bg-[#030712] border border-slate-800 rounded-xl p-4 text-center space-y-1">
+            <p class="text-xs font-bold text-slate-300">📌 NEXT STEP INSTRUCTION</p>
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              Show this screenshot to the school office. Once payment is settled, the office will give your official Entrance slip .
+            </p>
+          </div>
+
+          <div class="pt-4 flex flex-col items-center justify-center space-y-2 opacity-80">
+            <div class="h-10 w-full bg-[repeating-linear-gradient(to_right,#fff,#fff_2px,transparent_2px,transparent_5px,#fff_5px,#fff_8px,transparent_8px,transparent_11px)]"></div>
+            <p class="text-[9px] font-mono text-slate-500 tracking-widest uppercase">CampAuraAdventures2026</p>
+          </div>
+        </div>
+      </div>
+      
+
+      <!-- Action Tools -->
+      <div class="space-y-3">
+        <button 
+          onclick="window.print()" 
+          class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-750 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2 shadow-md"
+        >
+          🖨️ Save Ticket as PDF
+        </button>
+        <a 
+          href="/" 
+          class="block text-center w-full bg-[#091122] hover:bg-[#0d1830] border border-slate-800 text-slate-300 font-bold py-3.5 rounded-xl transition"
+        >
+          Return to Home Page
+        </a>
+      </div>
+
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { db } from '../lib/firebase';
+  import { doc, getDoc } from 'firebase/firestore';
+
+  const statusCard = document.getElementById('status-card') as HTMLDivElement;
+  const warningContainer = document.getElementById('connection-warning') as HTMLDivElement;
+  const forceLoadDemoBtn = document.getElementById('force-load-demo') as HTMLButtonElement;
+  
+  const ticketContainer = document.getElementById('ticket-container') as HTMLDivElement;
+  const ticketId = document.getElementById('ticket-id') as HTMLSpanElement;
+  const ticketStudent = document.getElementById('ticket-student') as HTMLSpanElement;
+  const ticketGrade = document.getElementById('ticket-grade') as HTMLSpanElement;
+  const ticketPhone = document.getElementById('ticket-phone') as HTMLSpanElement;
+  const ticketStatus = document.getElementById('ticket-status') as HTMLSpanElement;
+
+  // Read URL search parameter id
+  const urlParams = new URLSearchParams(window.location.search);
+  const bookingId = urlParams.get('id') || '';
+
+  // Setup safety timer. If db fails to respond within 3 seconds, display debug buttons.
+  const timeoutId = setTimeout(() => {
+    if (warningContainer) {
+      warningContainer.classList.remove('hidden');
+    }
+  }, 3000);
+
+  // Fallback demo mock builder for local sandbox testing
+  function displayDemoData() {
+    clearTimeout(timeoutId);
+    ticketId.textContent = bookingId ? bookingId.toUpperCase() : "DEMO8";
+    ticketStudent.textContent = "Liam Smith (Demo Profile)";
+    ticketGrade.textContent = "11th Grade (Junior)";
+    ticketPhone.textContent = "+1 (555) 123-4567";
+    ticketStatus.textContent = "● Demo Mode - Local Preview";
+    ticketStatus.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-950 text-blue-400 border border-blue-900/50';
+
+    statusCard.classList.add('hidden');
+    ticketContainer.classList.remove('hidden');
+  }
+
+  forceLoadDemoBtn.addEventListener('click', displayDemoData);
+
+  async function loadBookingTicket() {
+    if (!bookingId) {
+      clearTimeout(timeoutId);
+      statusCard.innerHTML = `
+        <div class="text-red-500 text-4xl">⚠️</div>
+        <h2 class="text-lg font-bold text-white mt-2">Missing Ticket ID</h2>
+        <p class="text-slate-400 text-sm mt-1">No ticket ID was captured from the booking page. Try filling out the booking form first.</p>
+        <a href="/book" class="inline-block mt-4 bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition">Go to Booking Form</a>
+      `;
+      return;
+    }
+
+    try {
+      console.log("Searching Firestore collection 'bookings' for ID: ", bookingId.toUpperCase());
+      const docRef = doc(db, 'bookings', bookingId.toUpperCase());
+      const docSnap = await getDoc(docRef);
+
+      clearTimeout(timeoutId);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+
+        // Bind data parameters to elements
+        ticketId.textContent = bookingId.toUpperCase();
+        ticketStudent.textContent = data.studentName;
+        ticketGrade.textContent = data.grade;
+        // Check for studentPhone first, fallback to parentPhone if old records exist
+        ticketPhone.textContent = data.studentPhone || data.parentPhone || "Not provided";
+
+        // Style the ticket badge depending on database verification state
+        if (data.status === 'confirmed') {
+          ticketStatus.textContent = '✓ Confirmed (Paid)';
+          ticketStatus.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800/50';
+        } else {
+          ticketStatus.textContent = '● Pending Payment';
+          ticketStatus.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-950 text-amber-400 border border-amber-900/50';
+        }
+
+        statusCard.classList.add('hidden');
+        ticketContainer.classList.remove('hidden');
+
+      } else {
+        // Document not found in Firestore
+        statusCard.innerHTML = `
+          <div class="text-red-500 text-4xl">🔎</div>
+          <h2 class="text-lg font-bold text-white mt-2">Ticket Not Found</h2>
+          <p class="text-slate-400 text-sm mt-1">Booking code <strong>"${bookingId.toUpperCase()}"</strong> was not found in our Firestore database records.</p>
+          <div class="mt-4 flex gap-2 justify-center">
+            <button id="retry-demo-btn" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">Force Local Demo View</button>
+            <a href="/" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2 rounded-xl text-xs transition">Go Home</a>
+          </div>
+        `;
+        document.getElementById('retry-demo-btn')?.addEventListener('click', displayDemoData);
+      }
+    } catch (err: any) {
+      console.error("Firestore loading error:", err);
+      // Fail-safe error output
+      clearTimeout(timeoutId);
+      statusCard.innerHTML = `
+        <div class="text-red-500 text-4xl">❌</div>
+        <h2 class="text-lg font-bold text-white mt-2">Database Connection Blocked</h2>
+        <p class="text-slate-400 text-xs mt-1">We couldn't connect to your Firebase Firestore project.</p>
+        <div class="bg-slate-950/60 p-3 rounded-lg text-left text-[10px] font-mono text-red-400 border border-slate-800 overflow-x-auto mt-2">
+          ${err.message || err}
+        </div>
+        <div class="mt-4 flex gap-2 justify-center">
+          <button id="err-demo-btn" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">Force Demo Simulation</button>
+          <button onclick="window.location.reload()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2 rounded-xl text-xs transition">Retry Connection</button>
+        </div>
+      `;
+      document.getElementById('err-demo-btn')?.addEventListener('click', displayDemoData);
+    }
+  }
+
+  // Fire loading on page load
+  window.addEventListener('DOMContentLoaded', loadBookingTicket);
+</script>
+
+<style>
+  /* Print helpers to isolate purely the ticket card on print layouts */
+  @media print {
+    body {
+      background: white !important;
+      color: black !important;
+    }
+    header, footer, button, a, #status-card {
+      display: none !important;
+    }
+    #ticket-card {
+      box-shadow: none !important;
+      border: 1px solid #cbd5e1 !important;
+      background: white !important;
+      max-width: 100% !important;
+      margin: 0 auto !important;
+    }
+  }
+</style>
