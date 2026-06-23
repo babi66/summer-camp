@@ -27,6 +27,24 @@ import Layout from '../../layouts/Layout.astro';
       </div>
     </div>
 
+    <!-- Summary Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-[#091122] border border-slate-800 rounded-3xl p-6 flex items-center justify-between">
+        <div>
+          <p class="text-sm font-bold text-slate-400 uppercase tracking-wider">Total Registered</p>
+          <p id="stat-total" class="text-4xl font-black text-white mt-1">0</p>
+        </div>
+        <div class="w-12 h-12 bg-blue-950/50 rounded-2xl flex items-center justify-center text-blue-400 text-xl">👥</div>
+      </div>
+      <div class="bg-[#091122] border border-slate-800 rounded-3xl p-6 flex items-center justify-between">
+        <div>
+          <p class="text-sm font-bold text-slate-400 uppercase tracking-wider">Total Paid</p>
+          <p id="stat-paid" class="text-4xl font-black text-white mt-1">0</p>
+        </div>
+        <div class="w-12 h-12 bg-emerald-950/50 rounded-2xl flex items-center justify-center text-emerald-400 text-xl">✅</div>
+      </div>
+    </div>
+
     <!-- Data Table -->
     <div class="bg-[#091122] rounded-3xl border border-slate-800 overflow-hidden">
       <div class="overflow-x-auto">
@@ -108,6 +126,14 @@ import Layout from '../../layouts/Layout.astro';
   // Real-time listener
   onSnapshot(collection(db, 'bookings'), (snapshot) => {
     allBookings = snapshot.docs.map(doc => ({ ...doc.data(), docId: doc.id }));
+    
+    // Update summary counts
+    const totalCount = allBookings.length;
+    const paidCount = allBookings.filter(b => b.status === 'confirmed').length;
+    
+    (document.getElementById('stat-total') as HTMLElement).textContent = totalCount.toString();
+    (document.getElementById('stat-paid') as HTMLElement).textContent = paidCount.toString();
+
     renderTable(searchInput.value);
   });
 
