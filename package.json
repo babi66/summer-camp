@@ -1,7 +1,8 @@
 {
   "name": "summer-camp-portal",
+  "version": "1.0.0",
+  "private": true,
   "type": "module",
-  "version": "0.0.1",
   "engines": {
     "node": ">=22.12.0"
   },
@@ -12,9 +13,15 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.3.1",
-    "astro": "^6.4.7",
-    "firebase": "^12.15.0",
-    "tailwindcss": "^4.3.1"
+    "@astrojs/react": "^4.2.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "astro": "^6.4.8",
+    "firebase": "^11.4.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0"
+  },
+  "devDependencies": {
+    "vite": "^6.4.3"
   }
 }
