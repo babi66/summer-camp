@@ -39,6 +39,7 @@ import Layout from '../layouts/Layout.astro';
           />
         </div>
 
+        <!-- Grade Selection -->
         <div class="space-y-2">
           <label for="grade" class="block text-xs sm:text-sm font-bold text-slate-300 uppercase tracking-wider">High School Year / Grade</label>
           <div class="relative">
@@ -54,7 +55,6 @@ import Layout from '../layouts/Layout.astro';
               <option value="11th Grade (Junior)">11th Grade (Junior)</option>
               <option value="12th Grade (Senior)">12th Grade (Senior)</option>
             </select>
-            <!-- Dropdown custom caret arrow -->
             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
               <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                 <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
@@ -89,6 +89,7 @@ import Layout from '../layouts/Layout.astro';
           />
         </div>
 
+        <!-- Policy Box -->
         <div class="bg-blue-950/30 rounded-xl p-4 border border-blue-900/40 flex gap-3 text-blue-300 text-xs sm:text-sm leading-relaxed">
           <span class="text-base">💡</span>
           <div>
@@ -99,7 +100,7 @@ import Layout from '../layouts/Layout.astro';
 
         <!-- Submission Trigger -->
         <button 
-          type="submit" 
+          type="button" 
           id="submit-btn"
           class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 active:scale-98 text-white font-extrabold text-base py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 mt-2"
         >
@@ -118,7 +119,6 @@ import Layout from '../layouts/Layout.astro';
   import { db } from '../lib/firebase';
   import { collection, getDocs, setDoc, doc } from 'firebase/firestore';
 
-  // Secure short randomized booking ticket code generator
   function generateBookingId(): string {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let code = '';
@@ -135,10 +135,13 @@ import Layout from '../layouts/Layout.astro';
   const errorContainer = document.getElementById('error-container') as HTMLDivElement;
   const errorMessage = document.getElementById('error-message') as HTMLParagraphElement;
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  submitBtn.addEventListener('click', async () => {
+    // Check form validity
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
     
-    // Clear alerts and start loader
     errorContainer.classList.add('hidden');
     submitBtn.disabled = true;
     btnText.textContent = "Verifying Spot Availability...";
@@ -151,29 +154,20 @@ import Layout from '../layouts/Layout.astro';
     const studentEmail = (formData.get('studentEmail') as string).trim();
 
     try {
-      // 1. Perform client-side verification on loaded snapshot to avoid Firestore compound index requirements
       const bookingsRef = collection(db, 'bookings');
       const querySnapshot = await getDocs(bookingsRef);
       
       let isDuplicate = false;
       querySnapshot.forEach((docSnap) => {
         const data = docSnap.data();
-        if (
-          data.studentNameLower === studentName.toLowerCase() && 
-          data.studentPhone === studentPhone
-        ) {
+        if (data.studentNameLower === studentName.toLowerCase() && data.studentPhone === studentPhone) {
           isDuplicate = true;
         }
       });
       
-      if (isDuplicate) {
-        throw new Error("You have already booked a space with this name and phone number. Go to the office to confirm!");
-      }
+      if (isDuplicate) throw new Error("You have already booked a space with this name and phone number. Go to the office to confirm!");
 
-      // 2. Generate randomized booking code
       const bookingId = generateBookingId();
-
-      // 3. Write data schema structure straight into Firestore collection
       await setDoc(doc(db, 'bookings', bookingId), {
         id: bookingId,
         studentName: studentName,
@@ -185,15 +179,12 @@ import Layout from '../layouts/Layout.astro';
         timestamp: Date.now()
       });
 
-      // 4. Redirect successfully directly to ticket success screen
       window.location.href = `/success?id=${bookingId}`;
-
     } catch (err: any) {
       console.error("Firebase submission error details: ", err);
-      errorMessage.textContent = err.message || "A database transaction error occurred. Please verify configuration.";
+      errorMessage.textContent = err.message || "A database transaction error occurred.";
       errorContainer.classList.remove('hidden');
       
-      // Reset layout button triggers
       submitBtn.disabled = false;
       btnText.textContent = "Confirm My Space";
       btnSpinner.classList.add('hidden');
