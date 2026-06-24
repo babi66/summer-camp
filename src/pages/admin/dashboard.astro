@@ -8,13 +8,11 @@ import Layout from '../../layouts/Layout.astro';
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-800 pb-6">
       <div>
         <h1 class="text-3xl font-black text-white tracking-tight uppercase">Comboni Office Roster</h1>
-        <!-- Bold, gradient-styled greeting -->
         <p id="user-greeting" class="text-slate-300 text-lg mt-2 font-medium">
           Welcome back, <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 font-bold">Elsabet Aschalew</span>.
         </p>
       </div>
       <div class="flex flex-wrap gap-3">
-        <!-- Search input field -->
         <input 
           type="text" 
           id="search-input" 
@@ -27,7 +25,6 @@ import Layout from '../../layouts/Layout.astro';
       </div>
     </div>
 
-    <!-- Summary Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div class="bg-[#091122] border border-slate-800 rounded-3xl p-6 flex items-center justify-between">
         <div>
@@ -45,7 +42,6 @@ import Layout from '../../layouts/Layout.astro';
       </div>
     </div>
 
-    <!-- Data Table -->
     <div class="bg-[#091122] rounded-3xl border border-slate-800 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left whitespace-nowrap border-collapse">
@@ -77,7 +73,7 @@ import Layout from '../../layouts/Layout.astro';
 
   let allBookings: any[] = [];
 
-  // Function to render rows based on filter
+  // Function to render rows with a Toggle button
   function renderTable(filter: string = '') {
     rosterTbody.innerHTML = '';
     const filtered = allBookings.filter(b => 
@@ -104,40 +100,44 @@ import Layout from '../../layouts/Layout.astro';
           </span>
         </td>
         <td class="px-6 py-4 text-right">
-          ${!isConfirmed ? `
-            <button data-id="${data.docId}" class="confirm-btn bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded-lg text-xs font-bold transition">
-              Confirm
-            </button>
-          ` : '<span class="text-emerald-500 font-bold text-xs">Paid</span>'}
+          <button 
+            data-id="${data.docId}" 
+            data-status="${data.status}" 
+            class="toggle-btn ${isConfirmed ? 'bg-amber-900 hover:bg-amber-800' : 'bg-emerald-900 hover:bg-emerald-800'} text-white px-3 py-1 rounded-lg text-xs font-bold transition"
+          >
+            ${isConfirmed ? 'Mark Pending' : 'Confirm'}
+          </button>
         </td>
       `;
       rosterTbody.appendChild(tr);
     });
 
-    // Re-attach listeners
-    document.querySelectorAll('.confirm-btn').forEach(btn => {
+    // Re-attach listeners to the toggle button
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
-        const id = (e.target as HTMLElement).getAttribute('data-id');
-        if(id) await updateDoc(doc(db, 'bookings', id), { status: 'confirmed' });
+        const target = e.target as HTMLElement;
+        const id = target.getAttribute('data-id');
+        const currentStatus = target.getAttribute('data-status');
+        const newStatus = currentStatus === 'confirmed' ? 'pending' : 'confirmed';
+        
+        if(id) await updateDoc(doc(db, 'bookings', id), { status: newStatus });
       });
     });
   }
 
-  // Real-time listener
   onSnapshot(collection(db, 'bookings'), (snapshot) => {
     allBookings = snapshot.docs.map(doc => ({ ...doc.data(), docId: doc.id }));
-    
-    // Update summary counts
     const totalCount = allBookings.length;
     const paidCount = allBookings.filter(b => b.status === 'confirmed').length;
     
-    (document.getElementById('stat-total') as HTMLElement).textContent = totalCount.toString();
-    (document.getElementById('stat-paid') as HTMLElement).textContent = paidCount.toString();
+    const totalEl = document.getElementById('stat-total');
+    const paidEl = document.getElementById('stat-paid');
+    if(totalEl) totalEl.textContent = totalCount.toString();
+    if(paidEl) paidEl.textContent = paidCount.toString();
 
     renderTable(searchInput.value);
   });
 
-  // Search event
   searchInput.addEventListener('input', () => renderTable(searchInput.value));
 
   document.getElementById('btn-logout')?.addEventListener('click', () => {
